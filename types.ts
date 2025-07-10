@@ -5,7 +5,7 @@ export interface Column<T> {
   isRemovable?: boolean
   isDraggable?: boolean
   isVisible?: boolean
-  width?: number // Added back for column resizing
+  width?: number // Added back for colaumn resizing
 }
 
 export interface DataItem {
