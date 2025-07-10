@@ -11,29 +11,38 @@ export interface Column<T> {
 export interface DataItem {
   id: string
   account: string
-  customer: string
   orderNr: string
+  customer: string
   name: string
-  balance: string
-  equity: string
   program: string
   platform: string
   platformStatus: string
-  upgraded: string
-  upgradedAccount: string
-  repeatedAccount: string
-  resetAccount: string
-  status: string
+  email: string
+  country: string
   type: string
   serverGroup: string
-  date: string
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  zipCode: string
-  city: string
-  state: string
-  country: string
-  breachReason: string
+  balance: string
+  equity: string
+  growth: string
+  pnl: string
+  level: string
+  softBreaches: string
+  copyTrading: string
+  hedgeTrading: string
+  ipCount: string
+  avgLoss: string
+  avgWin: string
+  dailyStopOutBar: string
+  overallStopOutBar: string
+  maxWithdrawal: string
+  targetEquityBar: string
+  hwmBalance: string
+  daysSinceDeposit: string
+  activeTradingDays: string
+  inactiveTradingDays: string
+  firstTradeDate: string
+  daysSinceFirstTrade: string
+  lwmAllTrades: string
+  consistencyBestWorstDay: string
+  consistencyTopDay: string
 }

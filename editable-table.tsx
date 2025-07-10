@@ -13,6 +13,10 @@ import { useFiltering } from "./hooks/use-filtering"
 import { mockData, initialColumns } from "./data"
 import { ColumnHeader } from "./components/column-header"
 import { FilterBanner } from "./components/filter-banner"
+import { KPIBanner } from "./components/kpi-banner"
+import { LiveStatus } from "./components/live-status"
+import { LiveValueCell } from "./components/live-value-cell"
+import { useLiveData } from "./hooks/use-live-data"
 import { toast } from "sonner" // Import toast from sonner
 
 export default function EditableTable() {
@@ -44,6 +48,9 @@ export default function EditableTable() {
   // Lazy loading states
   const [visibleItemsCount, setVisibleItemsCount] = useState(10)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  // Live data simulation
+  const { isConnected, getLiveValue, getChangeStatus } = useLiveData(filteredData)
 
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
@@ -222,10 +229,11 @@ export default function EditableTable() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
+          console.log('Intersection detected, loading more items...') // Debug log
           loadMoreItems()
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '200px' } // Increased rootMargin for earlier triggering
     )
 
     observer.observe(loadMoreElement)
@@ -238,7 +246,10 @@ export default function EditableTable() {
   return (      <Card className="w-full max-w-full shadow-sm border border-gray-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6 bg-white border-b border-gray-100">
           <div>
-            <CardTitle className="text-xl font-semibold text-gray-800">Customers</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-xl font-semibold text-gray-800">Customers</CardTitle>
+              <LiveStatus isConnected={isConnected} />
+            </div>
             <p className="text-sm text-gray-500 mt-1">
               Showing {filteredCount} of {totalCount} Customers
             </p>
@@ -336,6 +347,9 @@ export default function EditableTable() {
         />
       </div>
       
+      {/* KPI Banner */}
+      <KPIBanner data={filteredData} />
+      
       <CardContent ref={tableContainerRef} className="p-0">
         <Table className="border-collapse">
           <TableHeader className="bg-gray-50 border-b border-gray-200">
@@ -363,31 +377,44 @@ export default function EditableTable() {
           </TableHeader>
           <TableBody>
             {lazyLoadedData.map((row) => (
-              <TableRow key={row.id} className="hover:bg-gray-50 border-b border-gray-100">
-                {visibleColumns.map((column) => (
-                  <TableCell
-                    key={`${row.id}-${column.id}`}
-                    className="px-4 py-3 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
-                    style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }}
-                  >
-                    {row[column.accessor as keyof typeof row]}
-                  </TableCell>
-                ))}
+              <TableRow key={row.id} data-account-id={row.id} className="hover:bg-gray-50 border-b border-gray-100">
+                {visibleColumns.map((column) => {
+                  const isLiveColumn = ['equity', 'growth', 'pnl'].includes(column.accessor as string)
+                  const originalValue = row[column.accessor as keyof typeof row] as string
+                  
+                  if (isLiveColumn) {
+                    const liveValue = getLiveValue(row.id, column.accessor as 'equity' | 'growth' | 'pnl', originalValue)
+                    const changeStatus = getChangeStatus(row.id, column.accessor as 'equity' | 'growth' | 'pnl')
+                    
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        className="px-4 py-3 text-sm border-r border-gray-100 last:border-r-0"
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }}
+                      >
+                        <LiveValueCell value={liveValue} change={changeStatus} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  return (
+                    <TableCell
+                      key={`${row.id}-${column.id}`}
+                      className="px-4 py-3 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
+                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }}
+                    >
+                      {originalValue}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {/* Intersection observer trigger for infinite scroll */}
         {hasMoreItems && (
-          <div ref={loadMoreRef} className="flex justify-center py-6 bg-gray-50 border-t border-gray-200">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadMoreItems}
-              className="flex items-center gap-2 h-9 px-4 bg-white border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
-              aria-label="Load more items"
-            >
-              Load More ({filteredData.length - visibleItemsCount} remaining)
-            </Button>
+          <div ref={loadMoreRef} className="h-20 w-full flex items-center justify-center py-4">
+            <div className="text-sm text-gray-500">Loading more rows...</div>
           </div>
         )}
         {!hasMoreItems && filteredData.length > 10 && (

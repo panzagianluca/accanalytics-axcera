@@ -15,6 +15,10 @@ import { useFiltering } from "./hooks/use-filtering"
 import { mockData, initialColumns } from "./data"
 import { ColumnHeader } from "./components/column-header"
 import { FilterBanner } from "./components/filter-banner"
+import { KPIBanner } from "./components/kpi-banner"
+import { LiveStatus } from "./components/live-status"
+import { LiveValueCell } from "./components/live-value-cell"
+import { useLiveData } from "./hooks/use-live-data"
 import { toast } from "sonner"
 
 export default function EditableTable() {
@@ -43,7 +47,60 @@ export default function EditableTable() {
   const [hoveredColumnId, setHoveredColumnId] = useState<string | null>(null)
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  
+  // Lazy loading states
+  const [visibleItemsCount, setVisibleItemsCount] = useState(50)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  
   const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  // Get visible data slice for lazy loading
+  const visibleData = filteredData.slice(0, visibleItemsCount)
+  const hasMoreData = visibleItemsCount < filteredData.length
+
+  // Live data simulation
+  const { isConnected, getLiveValue, getChangeStatus } = useLiveData(filteredData)
+
+  // Load more data function
+  const loadMoreData = useCallback(() => {
+    if (isLoadingMore || !hasMoreData) return
+    
+    setIsLoadingMore(true)
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setVisibleItemsCount(prev => Math.min(prev + 50, filteredData.length))
+      setIsLoadingMore(false)
+    }, 100)
+  }, [isLoadingMore, hasMoreData, filteredData.length])
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMoreData && !isLoadingMore) {
+          loadMoreData()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const currentRef = loadMoreRef.current
+    if (currentRef) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+    }
+  }, [hasMoreData, isLoadingMore, loadMoreData])
+
+  // Reset visible items when filters change
+  useEffect(() => {
+    setVisibleItemsCount(50)
+  }, [filteredData.length])
 
   // State for resizing
   const [isResizing, setIsResizing] = useState(false)
@@ -204,9 +261,12 @@ export default function EditableTable() {
         <div className="flex items-center justify-between">
           {/* Left: Title & Stats */}
           <div>
-            <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight">
-              Customers
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight">
+                Customers
+              </CardTitle>
+              <LiveStatus isConnected={isConnected} />
+            </div>
             <div className="flex items-center gap-4 mt-2">
               <p className="text-sm text-slate-600">
                 <span className="font-semibold text-slate-900">{filteredCount}</span> of{" "}
@@ -324,6 +384,9 @@ export default function EditableTable() {
         </div>
       )}
 
+      {/* KPI Banner */}
+      <KPIBanner data={filteredData} />
+
       {/* Table Content */}
       <CardContent ref={tableContainerRef} className="p-0">
         <Table>
@@ -351,26 +414,61 @@ export default function EditableTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((row, index) => (
+            {visibleData.map((row, index) => (
               <TableRow 
                 key={row.id} 
+                data-account-id={row.id}
                 className={`border-slate-200 hover:bg-slate-50/70 transition-colors ${
                   index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
                 }`}
               >
-                {visibleColumns.map((column) => (
-                  <TableCell
-                    key={`${row.id}-${column.id}`}
-                    style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "120px" }}
-                    className="text-slate-700 py-4 font-medium"
-                  >
-                    {row[column.accessor as keyof typeof row]}
-                  </TableCell>
-                ))}
+                {visibleColumns.map((column) => {
+                  const isLiveColumn = ['equity', 'growth', 'pnl'].includes(column.accessor as string)
+                  const originalValue = row[column.accessor as keyof typeof row] as string
+                  
+                  if (isLiveColumn) {
+                    const liveValue = getLiveValue(row.id, column.accessor as 'equity' | 'growth' | 'pnl', originalValue)
+                    const changeStatus = getChangeStatus(row.id, column.accessor as 'equity' | 'growth' | 'pnl')
+                    
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "120px" }}
+                        className="py-4 font-medium"
+                      >
+                        <LiveValueCell value={liveValue} change={changeStatus} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  return (
+                    <TableCell
+                      key={`${row.id}-${column.id}`}
+                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "120px" }}
+                      className="text-slate-700 py-4 font-medium"
+                    >
+                      {originalValue}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {/* Intersection observer trigger for infinite scroll */}
+        {hasMoreData && (
+          <div ref={loadMoreRef} className="h-4 w-full" />
+        )}
+        {isLoadingMore && (
+          <div className="flex justify-center py-4">
+            <div className="text-sm text-slate-500">Loading more rows...</div>
+          </div>
+        )}
+        {!hasMoreData && visibleData.length > 0 && (
+          <div className="py-4 bg-gray-50 border-t border-gray-200 text-center text-sm text-gray-500">
+            Showing all {filteredData.length} results
+          </div>
+        )}
       </CardContent>
     </Card>
   )
