@@ -17,17 +17,24 @@ export const KPIBanner: React.FC<KPIBannerProps> = ({ data }) => {
       return {
         totalPnL: 0,
         largestProfit: { value: 0, account: "", accountId: "" },
-        largestLoss: { value: 0, account: "", accountId: "" }
+        largestLoss: { value: 0, account: "", accountId: "" },
+        profitableAccounts: 0
       }
     }
 
     let totalPnL = 0
+    let profitableAccounts = 0
     let largestProfit = { value: -Infinity, account: "", accountId: "" }
     let largestLoss = { value: Infinity, account: "", accountId: "" }
 
     data.forEach(item => {
       const pnlValue = parseFloat(item.pnl) || 0
+      
       totalPnL += pnlValue
+      
+      if (pnlValue > 0) {
+        profitableAccounts++
+      }
 
       // Track largest profit (highest positive PnL)
       if (pnlValue > largestProfit.value) {
@@ -53,10 +60,15 @@ export const KPIBanner: React.FC<KPIBannerProps> = ({ data }) => {
       largestProfit.value = 9135
     }
 
-    return { totalPnL, largestProfit, largestLoss }
+    return { 
+      totalPnL, 
+      largestProfit, 
+      largestLoss, 
+      profitableAccounts 
+    }
   }
 
-  const { totalPnL, largestProfit, largestLoss } = calculateKPIs()
+  const { totalPnL, largestProfit, largestLoss, profitableAccounts } = calculateKPIs()
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -81,18 +93,18 @@ export const KPIBanner: React.FC<KPIBannerProps> = ({ data }) => {
   }
 
   return (
-    <div className="px-4 py-3 bg-white border-b border-gray-200">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="px-4 py-2 bg-white border-b border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {/* Total PnL */}
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-3">
+        <Card className="border-l-4 border-l-blue-500 shadow-sm">
+          <CardContent className="p-2.5">
             <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-blue-100 rounded-md">
-                <DollarSign className="h-4 w-4 text-blue-600" />
+              <div className="p-1 bg-blue-100 rounded-md">
+                <DollarSign className="h-3.5 w-3.5 text-blue-600" />
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-600">Total PnL</p>
-                <p className={`text-lg font-bold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-base font-bold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(totalPnL)}
                 </p>
                 <p className="text-xs text-gray-500">{data.length} accounts</p>
@@ -101,22 +113,42 @@ export const KPIBanner: React.FC<KPIBannerProps> = ({ data }) => {
           </CardContent>
         </Card>
 
-        {/* Largest Profit */}
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-3">
+        {/* Profitable Accounts */}
+        <Card className="border-l-4 border-l-purple-500 shadow-sm">
+          <CardContent className="p-2.5">
             <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-green-100 rounded-md">
-                <TrendingUp className="h-4 w-4 text-green-600" />
+              <div className="p-1 bg-purple-100 rounded-md">
+                <TrendingUp className="h-3.5 w-3.5 text-purple-600" />
               </div>
-              <div className="flex-1">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Profitable Accounts</p>
+                <p className="text-base font-bold text-purple-600">
+                  {profitableAccounts}/{data.length}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {((profitableAccounts / data.length) * 100).toFixed(1)}% profitable
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Largest Profit */}
+        <Card className="border-l-4 border-l-green-500 shadow-sm">
+          <CardContent className="p-2.5">
+            <div className="flex items-center space-x-2">
+              <div className="p-1 bg-green-100 rounded-md">
+                <TrendingUp className="h-3.5 w-3.5 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-600">Largest Profit</p>
-                <p className="text-lg font-bold text-green-600">
+                <p className="text-base font-bold text-green-600">
                   {formatCurrency(largestProfit.value)}
                 </p>
                 {largestProfit.account && (
                   <button
                     onClick={() => handleAccountClick(largestProfit.accountId, largestProfit.account)}
-                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded"
+                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded truncate block"
                   >
                     {largestProfit.account}
                   </button>
@@ -127,21 +159,21 @@ export const KPIBanner: React.FC<KPIBannerProps> = ({ data }) => {
         </Card>
 
         {/* Largest Loss */}
-        <Card className="border-l-4 border-l-red-500">
-          <CardContent className="p-3">
+        <Card className="border-l-4 border-l-red-500 shadow-sm">
+          <CardContent className="p-2.5">
             <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-red-100 rounded-md">
-                <TrendingDown className="h-4 w-4 text-red-600" />
+              <div className="p-1 bg-red-100 rounded-md">
+                <TrendingDown className="h-3.5 w-3.5 text-red-600" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-600">Largest Loss</p>
-                <p className="text-lg font-bold text-red-600">
+                <p className="text-base font-bold text-red-600">
                   {formatCurrency(largestLoss.value)}
                 </p>
                 {largestLoss.account && (
                   <button
                     onClick={() => handleAccountClick(largestLoss.accountId, largestLoss.account)}
-                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded"
+                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded truncate block"
                   >
                     {largestLoss.account}
                   </button>

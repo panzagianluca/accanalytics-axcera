@@ -84,16 +84,16 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
       onKeyDown={(e) => onKeyDown(e, column.id)}
       tabIndex={isEditing ? 0 : -1}
       style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "90px", height: "60px" }} // Apply width and height
-      className={`relative group px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300 align-top ${
+      className={`relative group px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300 align-middle ${
         isEditing ? "cursor-grab" : ""
       } ${isDragging && draggedColumnId === column.id ? "opacity-50" : ""}
       ${isTarget ? "border-l-2 border-blue-500" : ""}
       ${isSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""}
       `}
     >
-      <div className="flex items-start justify-between gap-2 h-full">
+      <div className="flex items-center justify-between gap-2 h-full">
         <span 
-          className="text-sm leading-tight overflow-hidden text-ellipsis"
+          className="text-sm leading-tight overflow-hidden text-ellipsis text-center flex-1"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,

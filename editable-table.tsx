@@ -250,11 +250,11 @@ export default function EditableTable() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 pt-4 bg-white border-b border-gray-100">
           <div>
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg font-semibold text-gray-800">Customers</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-800">Account Analytics</CardTitle>
               <LiveStatus isConnected={isConnected} />
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
-              Showing {filteredCount} of {totalCount} Customers
+              Showing {filteredCount} of {totalCount} accounts
             </p>
           </div>
         <div className="flex items-center gap-2">
