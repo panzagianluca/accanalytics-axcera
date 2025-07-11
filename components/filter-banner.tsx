@@ -39,7 +39,7 @@ import { toast } from "sonner"
 
 export interface FilterState {
   platforms: string[]
-  plan: string
+  plan: string[]
   categories: string[]
   countries: string[]
   dateRange: {
@@ -189,11 +189,14 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
       case 'platform':
         newFilters.platforms = filters.platforms.filter(p => p !== value)
         break
-      case 'status':
-        newFilters.status = ''
+      case 'plan':
+        newFilters.plan = filters.plan.filter(p => p !== value)
         break
       case 'category':
         newFilters.categories = filters.categories.filter(c => c !== value)
+        break
+      case 'country':
+        newFilters.countries = filters.countries.filter(c => c !== value)
         break
       case 'dateRange':
         newFilters.dateRange = { from: undefined, to: undefined }
@@ -210,8 +213,9 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
   const clearAllFilters = () => {
     const emptyFilters: FilterState = {
       platforms: [],
-      status: '',
+      plan: [],
       categories: [],
+      countries: [],
       dateRange: { from: undefined, to: undefined },
       search: ''
     }
@@ -221,8 +225,9 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
 
   const hasActiveFilters = () => {
     return filters.platforms.length > 0 || 
-           filters.status !== '' || 
+           filters.plan.length > 0 || 
            filters.categories.length > 0 || 
+           filters.countries.length > 0 ||
            filters.dateRange.from || 
            filters.dateRange.to || 
            filters.search !== ''
@@ -283,15 +288,15 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
       })
     })
     
-    // Status chip
-    if (filters.status) {
+    // Plan chips
+    filters.plan.forEach(plan => {
       chips.push({
-        type: 'status',
-        label: `Status: ${filters.status}`,
-        value: filters.status,
+        type: 'plan',
+        label: `Plan: ${plan}`,
+        value: plan,
         color: 'bg-green-100 text-green-800'
       })
-    }
+    })
     
     // Category chips
     filters.categories.forEach(category => {
@@ -303,6 +308,16 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
       })
     })
     
+    // Country chips
+    filters.countries.forEach(country => {
+      chips.push({
+        type: 'country',
+        label: `Country: ${country}`,
+        value: country,
+        color: 'bg-indigo-100 text-indigo-800'
+      })
+    })
+    
     // Date range chip
     if (filters.dateRange.from || filters.dateRange.to) {
       const fromStr = filters.dateRange.from ? format(filters.dateRange.from, 'MMM dd') : 'Start'
@@ -310,6 +325,7 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
       chips.push({
         type: 'dateRange',
         label: `Date: ${fromStr} - ${toStr}`,
+        value: undefined,
         color: 'bg-orange-100 text-orange-800'
       })
     }
@@ -319,6 +335,7 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
       chips.push({
         type: 'search',
         label: `Search: "${filters.search}"`,
+        value: undefined,
         color: 'bg-gray-100 text-gray-800'
       })
     }
@@ -375,31 +392,38 @@ export function FilterBanner({ filters, onFiltersChange, onApplyFilters }: Filte
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Status Filter */}
-          <div className="relative">
-            <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
-              <SelectTrigger className="min-w-[140px] h-8 bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="shadow-lg border-gray-200">
-                {STATUS_OPTIONS.map((status) => (
-                  <SelectItem key={status} value={status} className="hover:bg-blue-50">
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {filters.status && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-8 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                onClick={() => removeFilterChip('status')}
-              >
-                <X className="h-3 w-3" />
+          {/* Plan Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[140px] h-8 justify-between bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400">
+                Plans ({filters.plan.length})
+                <ChevronDown className="h-4 w-4" />
               </Button>
-            )}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80 shadow-lg border-gray-200 max-h-80 overflow-y-auto">
+              <DropdownMenuLabel className="text-gray-700 font-medium">Select Plans</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-200" />
+              {PLAN_OPTIONS.map((plan) => (
+                <DropdownMenuItem key={plan} onSelect={(e) => e.preventDefault()}>
+                  <div className="flex items-center space-x-2 w-full">
+                    <Checkbox
+                      checked={filters.plan.includes(plan)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          updateFilter('plan', [...filters.plan, plan])
+                        } else {
+                          updateFilter('plan', filters.plan.filter(p => p !== plan))
+                        }
+                      }}
+                    />
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 line-clamp-2">
+                      {plan}
+                    </label>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Category Filter */}
           <DropdownMenu>

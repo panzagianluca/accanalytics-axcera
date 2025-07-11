@@ -7,7 +7,7 @@ import type { FilterState } from "../components/filter-banner"
 export function useFiltering(data: DataItem[]) {
   const [filters, setFilters] = useState<FilterState>({
     platforms: [],
-    plan: '',
+    plan: [],
     categories: [],
     countries: [],
     dateRange: { from: undefined, to: undefined },
@@ -46,7 +46,7 @@ export function useFiltering(data: DataItem[]) {
       }
 
       // Plan filter (using 'program' field from data)
-      if (filters.plan && item.program !== filters.plan) {
+      if (filters.plan.length > 0 && !filters.plan.includes(item.program)) {
         return false
       }
 
