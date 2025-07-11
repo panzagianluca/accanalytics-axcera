@@ -83,21 +83,32 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
       onDragLeave={handleDragLeave}
       onKeyDown={(e) => onKeyDown(e, column.id)}
       tabIndex={isEditing ? 0 : -1}
-      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }} // Apply width
-      className={`relative group px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300 ${
+      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "90px", height: "60px" }} // Apply width and height
+      className={`relative group px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300 align-top ${
         isEditing ? "cursor-grab" : ""
       } ${isDragging && draggedColumnId === column.id ? "opacity-50" : ""}
       ${isTarget ? "border-l-2 border-blue-500" : ""}
       ${isSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""}
       `}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span>{column.header}</span>
+      <div className="flex items-start justify-between gap-2 h-full">
+        <span 
+          className="text-sm leading-tight overflow-hidden text-ellipsis"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            lineHeight: '1.2',
+            maxHeight: '2.4em'
+          }}
+        >
+          {column.header}
+        </span>
         {/* Always render the button, control visibility with classes */}
         <Button
           variant="ghost"
           size="icon"
-          className={`h-5 w-5 transition-opacity ${
+          className={`h-5 w-5 transition-opacity flex-shrink-0 ${
             isEditing && column.isRemovable
               ? "opacity-0 group-hover:opacity-100 pointer-events-auto" // Visible on hover in edit mode
               : "opacity-0 pointer-events-none" // Always invisible and non-interactive in normal mode

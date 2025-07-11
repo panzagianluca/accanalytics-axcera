@@ -399,7 +399,7 @@ export default function EditableTable() {
                       <TableCell
                         key={`${row.id}-${column.id}`}
                         className="px-3 py-2 text-sm border-r border-gray-100 last:border-r-0"
-                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "90px" }}
                       >
                         <LiveValueCell value={liveValue} change={changeStatus} />
                       </TableCell>
@@ -428,7 +428,7 @@ export default function EditableTable() {
                       <TableCell
                         key={`${row.id}-${column.id}`}
                         className="px-3 py-2 text-sm border-r border-gray-100 last:border-r-0"
-                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "90px" }}
                       >
                         <MoneyValueCell value={originalValue} type={moneyType} />
                       </TableCell>
@@ -439,7 +439,7 @@ export default function EditableTable() {
                     <TableCell
                       key={`${row.id}-${column.id}`}
                       className="px-3 py-2 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
-                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
+                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "90px" }}
                     >
                       {originalValue}
                     </TableCell>
