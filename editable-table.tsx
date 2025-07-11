@@ -16,6 +16,9 @@ import { FilterBanner } from "./components/filter-banner"
 import { KPIBanner } from "./components/kpi-banner"
 import { LiveStatus } from "./components/live-status"
 import { LiveValueCell } from "./components/live-value-cell"
+import { BooleanIconCell } from "./components/boolean-icon-cell"
+import { MoneyValueCell } from "./components/money-value-cell"
+import { ExportButton } from "./components/export-button"
 import { useLiveData } from "./hooks/use-live-data"
 import { toast } from "sonner" // Import toast from sonner
 
@@ -244,17 +247,21 @@ export default function EditableTable() {
   }, [hasMoreItems, loadMoreItems])
 
   return (      <Card className="w-full max-w-full shadow-sm border border-gray-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6 bg-white border-b border-gray-100">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 pt-4 bg-white border-b border-gray-100">
           <div>
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-xl font-semibold text-gray-800">Customers</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg font-semibold text-gray-800">Customers</CardTitle>
               <LiveStatus isConnected={isConnected} />
             </div>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-0.5">
               Showing {filteredCount} of {totalCount} Customers
             </p>
           </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ExportButton 
+            onExportVisible={() => toast.info("Exporting visible columns...")}
+            onExportAll={() => toast.info("Exporting all columns...")}
+          />
           {isEditing && (
             <>
               <DropdownMenu>
@@ -380,6 +387,8 @@ export default function EditableTable() {
               <TableRow key={row.id} data-account-id={row.id} className="hover:bg-gray-50 border-b border-gray-100">
                 {visibleColumns.map((column) => {
                   const isLiveColumn = ['equity', 'growth', 'pnl'].includes(column.accessor as string)
+                  const isBooleanColumn = ['copyTrading', 'hedgeTrading'].includes(column.accessor as string)
+                  const isMoneyColumn = ['growth', 'pnl', 'avgLoss', 'avgWin'].includes(column.accessor as string)
                   const originalValue = row[column.accessor as keyof typeof row] as string
                   
                   if (isLiveColumn) {
@@ -389,10 +398,39 @@ export default function EditableTable() {
                     return (
                       <TableCell
                         key={`${row.id}-${column.id}`}
-                        className="px-4 py-3 text-sm border-r border-gray-100 last:border-r-0"
-                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }}
+                        className="px-3 py-2 text-sm border-r border-gray-100 last:border-r-0"
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
                       >
                         <LiveValueCell value={liveValue} change={changeStatus} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  if (isBooleanColumn) {
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        className="px-3 py-2 text-sm border-r border-gray-100 last:border-r-0 text-center"
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "65px" }}
+                      >
+                        <BooleanIconCell value={originalValue} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  if (isMoneyColumn) {
+                    const moneyType = column.accessor === 'growth' ? 'growth' :
+                                     column.accessor === 'pnl' ? 'pnl' :
+                                     column.accessor === 'avgLoss' ? 'avgLoss' :
+                                     column.accessor === 'avgWin' ? 'avgWin' : 'default'
+                    
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        className="px-3 py-2 text-sm border-r border-gray-100 last:border-r-0"
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
+                      >
+                        <MoneyValueCell value={originalValue} type={moneyType} />
                       </TableCell>
                     )
                   }
@@ -400,8 +438,8 @@ export default function EditableTable() {
                   return (
                     <TableCell
                       key={`${row.id}-${column.id}`}
-                      className="px-4 py-3 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
-                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "75px" }}
+                      className="px-3 py-2 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
+                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "85px" }}
                     >
                       {originalValue}
                     </TableCell>

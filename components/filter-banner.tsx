@@ -39,8 +39,9 @@ import { toast } from "sonner"
 
 export interface FilterState {
   platforms: string[]
-  status: string
+  plan: string
   categories: string[]
+  countries: string[]
   dateRange: {
     from: Date | undefined
     to: Date | undefined
@@ -65,34 +66,76 @@ interface FilterBannerProps {
 
 const PLATFORM_OPTIONS = [
   "MetaTrader 4",
-  "MetaTrader 5", 
-  "cTrader",
+  "MetaTrader 5",
+  "CTrader",
   "DXTrade",
-  "TradingView"
+  "TradeLocker",
+  "MatchTrader",
+  "WinTrado",
+  "Rithmic",
+  "DXTradeXT",
+  "VolumetricaVolSys"
 ]
 
-const STATUS_OPTIONS = [
-  "Active",
-  "Inactive", 
-  "Pending",
-  "Suspended",
-  "Closed"
+const PLAN_OPTIONS = [
+  "1-Step \"FLASH\" Funded | $6,250 | Platform 4",
+  "2-Step \"PRO\" Challenge | $12,500 | Platform 4 (Phase II)",
+  "10k - Phase 1 - Unlimited - MT5",
+  "23April DX",
+  "AXC Competitions MTR $25K",
+  "AXC Competitions TL $25K",
+  "AXE Challenge $10K - Evaluation",
+  "AXE Challenge $10K - Evaluation - copy",
+  "Consistency Rule Type Test",
+  "CTrader Challenge $10K - CAT",
+  "CTrader Taha Test",
+  "DX Challenge $10K - Funded",
+  "DX Challenge $10K, - Evaluation",
+  "DX Challenge $10K, - Evaluation - copy",
+  "DX Challenge $10K, - Evaluation - copy",
+  "DX Challenge $10K, - KYC PLan"
 ]
 
 const CATEGORY_OPTIONS = [
-  "Retail",
-  "Institutional",
-  "VIP",
-  "Demo",
-  "Live"
+  "PRO (Phase II)",
+  "FT Funded 2+ lvl",
+  "Evaluation",
+  "QT PRIME 2 STEP-STAGE 1 NO EP (NO COMS)",
+  "Funded",
+  "Phase 1",
+  "QA Victor",
+  "1 Step Plan"
+]
+
+const COUNTRY_OPTIONS = [
+  "Cayman Islands",
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Italy",
+  "Spain",
+  "Netherlands",
+  "Switzerland",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Brazil",
+  "Mexico",
+  "India",
+  "Singapore",
+  "Japan",
+  "South Korea",
+  "Hong Kong",
+  "UAE",
+  "South Africa"
 ]
 
 const VISIBILITY_OPTIONS = [
-  { value: 'private', label: 'Private (Only me)', icon: '🔒' },
-  { value: 'support', label: 'Support Team', icon: '👥' },
-  { value: 'risk', label: 'Risk Team', icon: '⚠️' },
-  { value: 'admin', label: 'Admin Team', icon: '👑' },
-  { value: 'everyone', label: 'Everyone', icon: '🌍' }
+  { value: 'private', label: 'Private (Only me)', icon: '�' },
+  { value: 'global', label: 'Global (Everyone)', icon: '🌍' }
 ]
 
 const STORAGE_KEY = 'saved_filters'

@@ -7,8 +7,9 @@ import type { FilterState } from "../components/filter-banner"
 export function useFiltering(data: DataItem[]) {
   const [filters, setFilters] = useState<FilterState>({
     platforms: [],
-    status: '',
+    plan: '',
     categories: [],
+    countries: [],
     dateRange: { from: undefined, to: undefined },
     search: ''
   })
@@ -44,8 +45,8 @@ export function useFiltering(data: DataItem[]) {
         return false
       }
 
-      // Status filter
-      if (filters.status && item.status !== filters.status) {
+      // Plan filter (using 'program' field from data)
+      if (filters.plan && item.program !== filters.plan) {
         return false
       }
 
@@ -54,9 +55,14 @@ export function useFiltering(data: DataItem[]) {
         return false
       }
 
-      // Date range filter (using 'date' field from data)
+      // Country filter
+      if (filters.countries.length > 0 && !filters.countries.includes(item.country)) {
+        return false
+      }
+
+      // Date range filter (using 'firstTradeDate' field from data)
       if (filters.dateRange.from || filters.dateRange.to) {
-        const itemDate = new Date(item.date)
+        const itemDate = new Date(item.firstTradeDate)
         
         if (filters.dateRange.from && itemDate < filters.dateRange.from) {
           return false
@@ -75,13 +81,13 @@ export function useFiltering(data: DataItem[]) {
           item.customer,
           item.name,
           item.email,
-          item.firstName,
-          item.lastName,
-          item.orderNr
+          item.orderNr,
+          item.program,
+          item.platform
         ]
         
         const matchesSearch = searchableFields.some(field => 
-          field.toLowerCase().includes(searchTerm)
+          field && field.toLowerCase().includes(searchTerm)
         )
         
         if (!matchesSearch) {

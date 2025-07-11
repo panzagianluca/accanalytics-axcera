@@ -18,6 +18,9 @@ import { FilterBanner } from "./components/filter-banner"
 import { KPIBanner } from "./components/kpi-banner"
 import { LiveStatus } from "./components/live-status"
 import { LiveValueCell } from "./components/live-value-cell"
+import { BooleanIconCell } from "./components/boolean-icon-cell"
+import { MoneyValueCell } from "./components/money-value-cell"
+import { ExportButton } from "./components/export-button"
 import { useLiveData } from "./hooks/use-live-data"
 import { toast } from "sonner"
 
@@ -256,24 +259,24 @@ export default function EditableTable() {
 
   return (
     <Card className="w-full max-w-full overflow-auto shadow-lg border-0">
-      {/* Premium Header */}
-      <CardHeader className="border-b bg-gradient-to-r from-white to-slate-50/50 pb-6">
+      {/* Compact Header */}
+      <CardHeader className="border-b bg-gradient-to-r from-white to-slate-50/50 pb-4">
         <div className="flex items-center justify-between">
           {/* Left: Title & Stats */}
           <div>
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-slate-900 tracking-tight">
                 Customers
               </CardTitle>
               <LiveStatus isConnected={isConnected} />
             </div>
-            <div className="flex items-center gap-4 mt-2">
-              <p className="text-sm text-slate-600">
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-xs text-slate-600">
                 <span className="font-semibold text-slate-900">{filteredCount}</span> of{" "}
                 <span className="font-semibold">{totalCount}</span> customers
               </p>
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs px-2 py-0">
                   {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active
                 </Badge>
               )}
@@ -281,13 +284,17 @@ export default function EditableTable() {
           </div>
 
           {/* Right: Search & Actions */}
-          <div className="flex items-center gap-3">
-            {/* Premium Search Bar */}
+          <div className="flex items-center gap-2">
+            <ExportButton 
+              onExportVisible={() => toast.info("Exporting visible columns...")}
+              onExportAll={() => toast.info("Exporting all columns...")}
+            />
+            {/* Compact Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 h-3 w-3" />
               <Input
                 placeholder="Search customers..."
-                className="pl-10 w-80 h-11 bg-white border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm transition-all"
+                className="pl-8 w-64 h-8 bg-white border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 shadow-sm transition-all text-sm"
                 value={filters.search || ""}
                 onChange={(e) => handleFiltersChange({ ...filters, search: e.target.value })}
               />
@@ -295,10 +302,10 @@ export default function EditableTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-slate-100 rounded-full"
+                  className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-slate-100 rounded-full"
                   onClick={() => handleFiltersChange({ ...filters, search: "" })}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               )}
             </div>
@@ -424,6 +431,8 @@ export default function EditableTable() {
               >
                 {visibleColumns.map((column) => {
                   const isLiveColumn = ['equity', 'growth', 'pnl'].includes(column.accessor as string)
+                  const isBooleanColumn = ['copyTrading', 'hedgeTrading'].includes(column.accessor as string)
+                  const isMoneyColumn = ['growth', 'pnl', 'avgLoss', 'avgWin'].includes(column.accessor as string)
                   const originalValue = row[column.accessor as keyof typeof row] as string
                   
                   if (isLiveColumn) {
@@ -433,10 +442,39 @@ export default function EditableTable() {
                     return (
                       <TableCell
                         key={`${row.id}-${column.id}`}
-                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "120px" }}
-                        className="py-4 font-medium"
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "100px" }}
+                        className="py-3 font-medium"
                       >
                         <LiveValueCell value={liveValue} change={changeStatus} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  if (isBooleanColumn) {
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "70px" }}
+                        className="py-3 font-medium text-center"
+                      >
+                        <BooleanIconCell value={originalValue} />
+                      </TableCell>
+                    )
+                  }
+                  
+                  if (isMoneyColumn) {
+                    const moneyType = column.accessor === 'growth' ? 'growth' :
+                                     column.accessor === 'pnl' ? 'pnl' :
+                                     column.accessor === 'avgLoss' ? 'avgLoss' :
+                                     column.accessor === 'avgWin' ? 'avgWin' : 'default'
+                    
+                    return (
+                      <TableCell
+                        key={`${row.id}-${column.id}`}
+                        style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "100px" }}
+                        className="py-3 font-medium"
+                      >
+                        <MoneyValueCell value={originalValue} type={moneyType} />
                       </TableCell>
                     )
                   }
@@ -444,8 +482,8 @@ export default function EditableTable() {
                   return (
                     <TableCell
                       key={`${row.id}-${column.id}`}
-                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "120px" }}
-                      className="text-slate-700 py-4 font-medium"
+                      style={{ width: column.width ? `${column.width}px` : "auto", minWidth: "100px" }}
+                      className="text-slate-700 py-3 font-medium"
                     >
                       {originalValue}
                     </TableCell>
