@@ -38,7 +38,7 @@ export const initialColumns: Column<DataItem>[] = [
   { id: "consistencyTopDay", header: "Consistency: Top Day Profit", accessor: "consistencyTopDay", isDraggable: true, isRemovable: true, isVisible: false, width: 180 },
 ]
 
-// For now, allAvailableColumns is the same as initialColumns.
+// For now, AallAvailableColumns is the same as initialColumns.
 // If you want to add more columns that are not initially visible but can be added,
 // you would add them here with isVisible: false.
 export const allAvailableColumns: Column<DataItem>[] = [...initialColumns]
